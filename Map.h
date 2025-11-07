@@ -37,6 +37,7 @@ private:
   float high_passable_color[3]  = { 128.0f / 255.0f, 196.0f / 255.0f, 78.0f / 255.0f, };
   // rgb(79, 155, 255)
   float low_impassable_color[3] = { 79.0f / 255.0f, 155.0f / 255.0f, 255.0f / 255.0f, };
+  //float low_impassable_color[3] = { 1.0f, 0.1f, 0.2f };
   // rgb(138, 143, 135)
   float high_impassable_color[3] = { 138.0f / 255.0f, 143.0f / 255.0f, 135.0f / 255.0f, };
 

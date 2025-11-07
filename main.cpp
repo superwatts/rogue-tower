@@ -14,13 +14,13 @@ char canvas_Name[] = "Tower Defense Roguelike";
 float CENTER_X = canvas_Width   / 2.0f;
 float CENTER_Y = canvas_Height  / 2.0f;
 
-std::string SEED = "-1";
+std::string SEED = "gorbus";
 bool do_draw_map_params = true;
 bool draw_map_grid = false;
 
 const float CLEAR_COLOR[3] = { 0.0f, 0.0f, 0.0f };
 
-int map_size[2] = { 50, 50 };
+int map_size[2] = { 200, 200 };
 Map game_map = Map(map_size[0], map_size[1], SEED);
 
 constexpr float D_PERLIN = 0.0125;
@@ -145,8 +145,9 @@ int main(int argc, char** argv)
   glutKeyboardFunc(getKeys);
   glutSpecialFunc(specialKeys);
 
-  game_map.setElevationLevels(9);
-  game_map.setElevationQuantity(0, 6);
+  game_map.setElevationLevels(15);
+  game_map.setElevationQuantity(0, 14);
+  //game_map.setElevationQuantity(0, 2);
   //game_map.setElevationQuantity(2, 4);
   //game_map.setElevationQuantity(4, 3);
 
