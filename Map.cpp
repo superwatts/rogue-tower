@@ -3,11 +3,9 @@
 #include "Map.h"
 #include<iomanip>
 
-constexpr float SCALE = 0.15f; // 0.15f looks good. so does 0.25 w p_passable = 0.5
 constexpr bool DEBUG_PRINT = false;
 constexpr bool DEBUG_COLOR = false;
 float DEBUG_COLOR_V[3] = { 1.0f, 0.0f, 1.0f };
-constexpr bool DRAW_P = true;
 constexpr unsigned int DEFAULT_SEED = 123456789;
 
 Map::Map()
@@ -58,7 +56,7 @@ Map::~Map()
   clearElevationValues();
 }
 
-void Map::drawMap(float x, float y, float z, bool do_outline)
+void Map::drawMap(float x, float y, float z, float tile_w, bool do_outline)
 {
   Tile* current_tile = NULL;
   for (int tx = 0; tx < x_tiles; tx++)
@@ -88,7 +86,7 @@ void Map::drawMap(float x, float y, float z, bool do_outline)
         }
         */
         if (color == NULL) { continue; }
-        if (DRAW_P)
+        if (draw_p)
         {
           glColor3f(color[0] * current_tile->p_value, color[1] * current_tile->p_value, color[2] * current_tile->p_value);
         }
@@ -96,7 +94,39 @@ void Map::drawMap(float x, float y, float z, bool do_outline)
         {
           glColor3fv(color);
         }
-        current_tile->drawTile(x + (tx * tile_w), y + (ty * tile_w), z, tile_w, do_outline);
+        float draw_x = x + (tx * tile_w);
+        float draw_y = y + (ty * tile_w);
+        current_tile->drawTile(draw_x, draw_y, z, tile_w, do_outline);
+
+        if (draw_borders)
+        {
+          glColor3f(0.0f, 0.0f, 0.0f);
+          int e = current_tile->elevation;
+
+          if (ty == (y_tiles - 1) || (ty < y_tiles - 2 && tile_map[tx][ty + 1].elevation != e))
+          {
+            current_tile->drawTileBorder(draw_x, draw_y, z, tile_w, D_UP);
+          }
+          if (ty == 0 || (ty > 0 && tile_map[tx][ty - 1].elevation != e))
+          {
+            current_tile->drawTileBorder(draw_x, draw_y, z, tile_w, D_DOWN);
+          }
+          if (tx == 0 || (tx > 0 && tile_map[tx - 1][ty].elevation != e))
+          {
+            current_tile->drawTileBorder(draw_x, draw_y, z, tile_w, D_LEFT);
+          }
+          if (tx == (x_tiles - 1) || (tx < x_tiles - 2 && tile_map[tx + 1][ty].elevation != e))
+          {
+            current_tile->drawTileBorder(draw_x, draw_y, z, tile_w, D_RIGHT);
+          }
+
+        if (tx == selected_tile[0] && ty == selected_tile[1])
+        {
+          glColor4fv(selected_highlight);
+          current_tile->drawTile(draw_x, draw_y, z, tile_w, do_outline);
+          }
+        }
+        
         //std::cout << '(' << x << ", " << y << ") is not null\n";
       }
       else
@@ -107,16 +137,18 @@ void Map::drawMap(float x, float y, float z, bool do_outline)
   }
 }
 
-void Map::drawMapCentered(float x, float y, float z, bool do_outline)
+void Map::drawMapCentered(float x, float y, float z, float tile_w, bool do_outline)
 {
   float cx = x - ((tile_w * x_tiles) / 2.0f);
   float cy = y - ((tile_w * y_tiles) / 2.0f);
-  drawMap(cx, cy, z, do_outline);
+  drawMap(cx, cy, z, tile_w, do_outline);
 }
 
-void Map::setTileW(float tile_width)
+void Map::drawMapCenteredFit(float x, float y, float z, bool do_outline, float max_w, float max_h)
 {
-  tile_w = tile_width;
+  float tile_fit_size = fmin(max_w / float(x_tiles), max_h / float(y_tiles));
+  //std::cout << tile_fit_size << '\n';
+  drawMapCentered(x, y, z, tile_fit_size, do_outline);
 }
 
 void Map::setCurrentTile(int x, int y)
@@ -135,6 +167,18 @@ void Map::moveCurrentTile(int dx, int dy)
   setCurrentTile(selected_tile[0] + dx, selected_tile[1] + dy);
 }
 
+
+void Map::setOffset(int x, int y)
+{
+  x_offset = x; y_offset = y;
+  // TEMPORARY AND INEFFICIENT SOLUTION:
+  populateMap(x_tiles, y_tiles, seed_int);
+}
+void Map::moveOffset(int dx, int dy)
+{
+  setOffset(x_offset + dx, y_offset + dy);
+}
+
 const void Map::clearMap()
 {
   for (int x = 0; x < x_tiles; x++)
@@ -150,6 +194,14 @@ const void Map::clearMap()
   }
 }
 
+void Map::populateMap()
+{
+  if (x_tiles >= 0 && y_tiles >= 0)
+  {
+    populateMap(x_tiles, y_tiles, seed_int);
+  }
+}
+
 // Seeded map population.
 void Map::populateMap(int num_x_tiles, int num_y_tiles, unsigned int seed)
 {
@@ -162,7 +214,7 @@ void Map::populateMap(int num_x_tiles, int num_y_tiles, unsigned int seed)
     {
       //std::cout << float(x) << ", " << float(y) << '\n';
       //float p = perlin(float(x) / float(num_x_tiles), float(y) / float(num_y_tiles));
-      float p = perlin(float(x) * SCALE, float(y) * SCALE, seed);
+      float p = perlin(float(x + x_offset) * perlin_scale, float(y + y_offset) * perlin_scale, seed);
       p = (p + 1.0f) / 2.0f;
       tile_map[x][y].p_value = p;
       if (DEBUG_PRINT) { std::cout << '(' << float(x) << ", " << float(y) << ") = " << p << '\n'; }
@@ -175,7 +227,7 @@ void Map::populateMap(int num_x_tiles, int num_y_tiles, unsigned int seed)
       {
         for (int i = 1; i < elevation_levels - 1; i++)
         {
-          if (p >= elevation_proportions[i - 1] and p < elevation_proportions[i + 1])
+          if (p >= elevation_proportions[i - 1] && p < elevation_proportions[i + 1])
           {
             tile_map[x][y].elevation = i;
           }
@@ -250,9 +302,22 @@ void Map::clearColorMap()
     for (int i = 0; i < elevation_levels; i++)
     {
       delete[] color_map[i];
+      color_map[i] = NULL;
     }
   }
   delete color_map;
+  color_map = NULL;
+}
+
+void Map::setElevationLevels(unsigned int levels)
+{
+  clearElevationValues();
+  //clearColorMap();
+  elevation_levels = levels;
+
+  buildElevationProportions();
+  buildColorMap();
+  populateMap();
 }
 
 void Map::buildElevationQuantities()
@@ -270,7 +335,7 @@ void Map::setElevationQuantity(int level, float quantity)
 void Map::setElevationQuantity(int level, float quantity, bool do_build)
 {
   if (elevation_quantities == NULL) { buildElevationQuantities(); }
-  if (level > (elevation_levels - 1) or level < 0) { return; }
+  if (level > (elevation_levels - 1) || level < 0) { return; }
   else
   {
     elevation_quantities[level] = quantity;
@@ -314,8 +379,16 @@ void Map::buildElevationProportions()
 }
 void Map::clearElevationValues()
 {
-  if (elevation_proportions != NULL) { delete elevation_proportions; }
-  if (elevation_quantities  != NULL) { delete elevation_quantities; }
+  if (elevation_proportions != NULL)
+  {
+    delete elevation_proportions;
+    elevation_proportions = NULL;
+  }
+  if (elevation_quantities != NULL)
+  {
+    delete elevation_quantities;
+    elevation_quantities = NULL;
+  }
 }
 
 void Map::printAllElevations()

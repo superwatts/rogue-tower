@@ -8,6 +8,16 @@
 constexpr bool CHAT = true;
 constexpr unsigned int DEFAULT_SEED = 123456789;
 
+/*
+enum DIRECTION
+{
+  D_UP,
+  D_DOWN,
+  D_LEFT,
+  D_RIGHT
+};
+//*/
+
 // Perlin noise from https://www.youtube.com/watch?v=kCIaHqb60Cw
 struct my_vector2 {
   float x;

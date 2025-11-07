@@ -22,7 +22,8 @@ void my_setup(int width, int height, char *window_name_str)
   glutInitContextVersion(4, 3);
   glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
   // For double buffering, uncomment the next line:
-  // glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+  //glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+  //glutSwapBuffers();
   // Below line deos single buffering
   // If above line is uncommented, the next line will need to be commented out.
   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
@@ -30,6 +31,9 @@ void my_setup(int width, int height, char *window_name_str)
   glutInitWindowPosition(STRT_X_POS, STRT_Y_POS);
   glutCreateWindow(window_name_str);
   glewExperimental = GL_TRUE;
+  glEnable(GL_BLEND);
+  //glBlendFunc(GL_ONE, GL_ZERO);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glewInit();
   glutReshapeFunc(my_3d_projection);
 }

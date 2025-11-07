@@ -11,12 +11,16 @@ private:
   int x_tiles = 0;
   int y_tiles = 0;
   int selected_tile[2] = { 0, 0 };
+  int x_offset = 0;
+  int y_offset = 0;
   int block_size = 0; // # Tiles
   Tile** tile_map = NULL;
-  float tile_w = 5;
+  //float tile_w = 5;
   int n_passable  = 0;
   int n_impass    = 0;
   int n_path      = 0;
+
+  //float perlin_scale = 0.15f; // 0.15f looks good. so does 0.25 w p_passable = 0.5
 
   // How many elevation levels you want. 1 == hole/water, 5 == walll
   unsigned int elevation_levels = 5;
@@ -38,6 +42,7 @@ private:
 
   float path_color[3]       = { 0.5f, 0.5f, 0.5f };
   float selected_color[3]   = { 0.0f, 0.0f, 1.0f };
+  float selected_highlight[4] = { 1.0f, 1.0f, 1.0f, 0.3f };
 public:
   Map();
   Map(int num_x_tiles, int num_y_tiles);
@@ -45,12 +50,20 @@ public:
   Map(int num_x_tiles, int num_y_tiles, std::string seed);
   ~Map();
 
-  void drawMap(float x, float y, float z, bool do_outline);
-  void drawMapCentered(float x, float y, float z, bool do_outline);
-  void setTileW(float tile_width);
+  // public ONLY FOR DEBUG:
+  float perlin_scale = 0.15f; // 0.15f looks good. so does 0.25 w p_passable = 0.5
+  bool draw_p = true;
+  bool draw_borders = true;
+
+  void drawMap(float x, float y, float z, float tile_w, bool do_outline);
+  void drawMapCentered(float x, float y, float z, float tile_w, bool do_outline);
+  void drawMapCenteredFit(float x, float y, float z, bool do_outline, float max_w, float max_h);
   void setCurrentTile(int x, int y);
   void moveCurrentTile(int dx, int dy);
+  void setOffset(int x, int y);
+  void moveOffset(int dx, int dy);
   const void clearMap();
+  void populateMap();
   void populateMap(int num_x_tiles, int num_y_tiles);
   void populateMap(int num_x_tiles, int num_y_tiles, unsigned int seed);
   void resize(int num_x_tiles, int num_y_tiles);
@@ -59,6 +72,7 @@ public:
   float* getInterpolatedColor(int level, int lowest_elevation, int highest_elevation);
   void buildColorMap();
   void clearColorMap();
+  void setElevationLevels(unsigned int levels);
   void buildElevationQuantities();
   void setElevationQuantity(int level, float quantity);
   void setElevationQuantity(int level, float quantity, bool do_build);

@@ -50,7 +50,34 @@ void Tile::drawTile(float x, float y, float z, float w, bool do_outline)
   }
 }
 
-void Tile::drawTileBorder(float x, float y, float w, DIRECTION direction)
+void Tile::drawTileBorder(float x, float y, float z, float w, DIRECTION direction)
 {
-
+  if (direction == D_UP)
+  {
+    glBegin(GL_LINES);
+      glVertex3f(x + w, y + w,  z);
+      glVertex3f(x,     y + w,  z);
+    glEnd();
+  }
+  else if (direction == D_DOWN)
+  {
+    glBegin(GL_LINES);
+      glVertex3f(x,     y,      z);
+      glVertex3f(x + w, y,      z);
+    glEnd();
+  }
+  else if (direction == D_LEFT)
+  {
+    glBegin(GL_LINES);
+      glVertex3f(x    , y + w,  z);
+      glVertex3f(x,     y,      z);
+    glEnd();
+  }
+  else if (direction == D_RIGHT)
+  {
+    glBegin(GL_LINES);
+      glVertex3f(x + w, y,      z);
+      glVertex3f(x + w, y + w,  z);
+    glEnd();
+  }
 }

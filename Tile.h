@@ -21,7 +21,7 @@ public:
   Tile(int elevation_level);
   ~Tile();
   void drawTile(float x, float y, float z, float w, bool do_outline);
-  void drawTileBorder(float x, float y, float w, DIRECTION direction);
+  void drawTileBorder(float x, float y, float z, float w, DIRECTION direction);
 };
 
 

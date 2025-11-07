@@ -6,7 +6,13 @@
 #include <string>
 #include <math.h>
 
-extern enum DIRECTION;
+extern enum DIRECTION
+{
+  D_UP,
+  D_DOWN,
+  D_LEFT,
+  D_RIGHT
+};
 
 // Perlin noise from https://www.youtube.com/watch?v=kCIaHqb60Cw
 extern struct my_vector2;
