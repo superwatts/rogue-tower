@@ -15,16 +15,25 @@ float CENTER_X = canvas_Width   / 2.0f;
 float CENTER_Y = canvas_Height  / 2.0f;
 
 std::string SEED = "gorbus";
+int         SEED_INT = fnv1a_hash(SEED);
 bool do_draw_map_params = true;
 bool draw_map_grid = false;
 
 const float CLEAR_COLOR[3] = { 0.0f, 0.0f, 0.0f };
 
-int map_size[2] = { 200, 200 };
-Map game_map = Map(map_size[0], map_size[1], SEED);
+int map_size[2] = { 100, 100 };
+int map_margins[2] = { 100, 100 };
+Map game_map = Map(map_size[0], map_size[1], SEED_INT);
 
 constexpr float D_PERLIN = 0.0125;
 int map_movement_speed = 5;
+
+void newRandomMap()
+{
+  SEED_INT = rand();
+  game_map.setSeed(SEED_INT);
+  game_map.populateMap();
+}
 
 static void clearScreen()
 {
@@ -58,11 +67,20 @@ static void getKeys(unsigned char key, int x, int y)
   if (key == 'a') { game_map.moveOffset(-map_movement_speed,  0); }
   if (key == 's') { game_map.moveOffset(0,                    -map_movement_speed); }
   if (key == 'd') { game_map.moveOffset(map_movement_speed,   0); }
+
   if (key == '[')
   {
     if (map_size[0] > 1)
     {
       map_size[0]--;
+      game_map.resize(map_size[0], map_size[1]);
+    }
+  }
+  if (key == '{')
+  {
+    if (map_size[0] > 1)
+    {
+      map_size[0]-= std::min(10, map_size[0]-1);
       game_map.resize(map_size[0], map_size[1]);
     }
   }
@@ -74,6 +92,14 @@ static void getKeys(unsigned char key, int x, int y)
       game_map.resize(map_size[0], map_size[1]);
     }
   }
+  if (key == '}')
+  {
+    if (map_size[0] > 0)
+    {
+      map_size[0] += 10;
+      game_map.resize(map_size[0], map_size[1]);
+    }
+  }
   if (key == '-')
   {
     if (map_size[1] > 1)
@@ -82,11 +108,27 @@ static void getKeys(unsigned char key, int x, int y)
       game_map.resize(map_size[0], map_size[1]);
     }
   }
-  if (key == '+' || key == '=')
+  if (key == '_')
+  {
+    if (map_size[1] > 1)
+    {
+      map_size[1]-= std::min(10, map_size[1]-1);
+      game_map.resize(map_size[0], map_size[1]);
+    }
+  }
+  if (key == '=')
   {
     if (map_size[1] > 0)
     {
       map_size[1]++;
+      game_map.resize(map_size[0], map_size[1]);
+    }
+  }
+  if (key == '+')
+  {
+    if (map_size[1] > 0)
+    {
+      map_size[1] += 10;
       game_map.resize(map_size[0], map_size[1]);
     }
   }
@@ -109,6 +151,8 @@ static void getKeys(unsigned char key, int x, int y)
 
   if (key == 'E') { game_map.printAllElevations(); }
   if (key == 'V') { game_map.printAllPValues(); }
+
+  if (key == 'N') { newRandomMap(); }
 }
 
 static void drawMapParams()
@@ -123,6 +167,10 @@ static void drawMapParams()
   glRasterPos2f(1.0f, canvas_Height - 27.0f);
   message = "Scale: " + std::to_string(game_map.perlin_scale);
   for (char c : message) { glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c); }
+
+  glRasterPos2f(1.0f, canvas_Height - 40.0f);
+  message = "Seed: " + std::to_string(SEED_INT);
+  for (char c : message) { glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c); }
 }
 
 static void displayScene()
@@ -132,7 +180,7 @@ static void displayScene()
   //glRotatef(45.0f, 0.0f, 0.0f, 1.0f);
   if (do_draw_map_params) { drawMapParams(); }
   //game_map.drawMapCentered(CENTER_X, CENTER_Y, 0.0f, 20.0f, true);
-  game_map.drawMapCenteredFit(CENTER_X, CENTER_Y, 0.0f, draw_map_grid, canvas_Width - 70, canvas_Height - 70);
+  game_map.drawMapCenteredFit(CENTER_X, CENTER_Y, 0.0f, draw_map_grid, canvas_Width - map_margins[0], canvas_Height - map_margins[1]);
 
   glFinish();
 }
@@ -145,8 +193,11 @@ int main(int argc, char** argv)
   glutKeyboardFunc(getKeys);
   glutSpecialFunc(specialKeys);
 
-  game_map.setElevationLevels(15);
-  game_map.setElevationQuantity(0, 14);
+  game_map.setElevationQuantity(0, 3);
+
+  //game_map.setElevationLevels(15);
+  //game_map.setElevationQuantity(0, 14);
+  // 
   //game_map.setElevationQuantity(0, 2);
   //game_map.setElevationQuantity(2, 4);
   //game_map.setElevationQuantity(4, 3);

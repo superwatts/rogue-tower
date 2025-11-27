@@ -68,6 +68,7 @@ public:
   void populateMap(int num_x_tiles, int num_y_tiles);
   void populateMap(int num_x_tiles, int num_y_tiles, unsigned int seed);
   void resize(int num_x_tiles, int num_y_tiles);
+  int getSeed();
   void setSeed(unsigned int new_seed);
   void setSeed(std::string new_seed);
   float* getInterpolatedColor(int level, int lowest_elevation, int highest_elevation);

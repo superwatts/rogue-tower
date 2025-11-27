@@ -257,6 +257,10 @@ void Map::resize(int num_x_tiles, int num_y_tiles)
   if (selected_tile[1] >= y_tiles) { selected_tile[1] = y_tiles - 1; }
 }
 
+int Map::getSeed()
+{
+  return seed_int;
+}
 void Map::setSeed(unsigned int new_seed)
 {
   seed_int = new_seed;
